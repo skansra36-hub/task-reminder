@@ -759,11 +759,30 @@
     </div>
 
     <script>
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('sw.js').catch(err => {
-                console.log('Service Worker registration failed:', err);
-            });
-        }
+       // Register Service Worker with better background handling
+if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('sw.js')
+        .then(reg => {
+            console.log('✅ Service Worker registered');
+            
+            // Request periodic background sync
+            if ('periodicSync' in reg) {
+                reg.periodicSync.register('check-reminders', {
+                    minInterval: 24 * 60 * 60 * 1000 // 24 hours
+                }).catch(() => console.log('Periodic sync not supported'));
+            }
+        })
+        .catch(err => console.log('Service Worker failed:', err));
+}
+
+// Keep checking reminders even when tab is in background
+document.addEventListener('visibilitychange', () => {
+    if (document.hidden) {
+        console.log('App in background - Service Worker should handle notifications');
+    } else {
+        console.log('App is visible');
+    }
+});
 
         class TaskReminderApp {
             constructor() {
